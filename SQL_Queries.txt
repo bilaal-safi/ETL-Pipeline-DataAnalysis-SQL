@@ -1,0 +1,34 @@
+Some basic information about the data via SQL queries
+
+
+-- Top 10 highest revenue-generating products
+
+
+SELECT product_id,
+		sum(sales_price) as Revenue
+FROM etl_db.orders_table
+GROUP BY product_id
+ORDER BY Revenue DESC
+LIMIT 10;
+
+
+
+
+-- Top 5 highest selling products in 'EACH' region
+
+-- For this, we will use  Common Table Expression (CTE), for example highest_selling_products
+
+WITH highest_selling_products AS (
+	SELECT region,
+		product_id,
+		sum(sales_price) as sales,
+        RANK() OVER (PARTITION BY region ORDER BY sum(sales_price) DESC) AS product_rank
+FROM etl_db.orders_table
+GROUP BY region, product_id)
+
+SELECT region,
+		product_id,
+        sales
+FROM highest_selling_products
+WHERE product_rank <= 5
+ORDER BY region, sales DESC;
